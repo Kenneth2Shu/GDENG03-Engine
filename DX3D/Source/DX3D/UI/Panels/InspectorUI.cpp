@@ -35,19 +35,22 @@ void InspectorUI::render()
     float windowHeight = io.DisplaySize.y;
     float halfWidth = windowWidth * 0.5f;
     float halfHeight = windowHeight * 0.5f;
-
+    float topHeight = windowHeight * 0.6f;
+    float bottomHeight = windowHeight * 0.35f;
 
     float inspectorHeight = halfHeight * 0.60f;
     float inspectorY = halfHeight + (halfHeight * 0.03f);
 
-    ImGui::SetNextWindowPos(ImVec2(halfWidth, inspectorY));
-    ImGui::SetNextWindowSize(ImVec2(halfWidth, inspectorHeight));
+    //ImGui::SetNextWindowPos(ImVec2(halfWidth, inspectorY));
+    ImGui::SetNextWindowPos(ImVec2(windowWidth / 2, topHeight + 50));
+    //ImGui::SetNextWindowSize(ImVec2(halfWidth, inspectorHeight));
+    ImGui::SetNextWindowSize(ImVec2(windowWidth / 2, bottomHeight - 10));
     ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     auto selectedObject = m_selectionSystem.getSelectedObject();
     if (!selectedObject)
     {
-        ImGui::Text("No object selected");
+        ImGui::Text("No object is currently selected.");
         ImGui::End();
         return;
     }
@@ -83,7 +86,7 @@ void InspectorUI::render()
 
 void InspectorUI::renderObjectInfo(std::shared_ptr<AGameObject> object)
 {
-    ImGui::Text("Object Info");
+    ImGui::Text("Object Information");
     ImGui::Text("Type: %s", object->getObjectType().c_str());
     ImGui::Text("Entity ID: %u", object->getEntity().getID());
 
@@ -103,12 +106,12 @@ void InspectorUI::renderMaterialSection(std::shared_ptr<AGameObject> object)
     if (std::dynamic_pointer_cast<LightObject>(object) ||
         std::dynamic_pointer_cast<CameraObject>(object))
     {
-        ImGui::Text("Materials not applicable to this object type");
+        ImGui::Text("Materials are not applicable to this object type");
         return;
     }
 
     bool hasMaterial = object->hasMaterial();
-    ImGui::Text("Has Material: %s", hasMaterial ? "Yes" : "No");
+    ImGui::Text("Material is applied: %s", hasMaterial ? "Yes" : "No");
 
     if (hasMaterial)
     {
@@ -156,7 +159,7 @@ void InspectorUI::renderMaterialSection(std::shared_ptr<AGameObject> object)
             ImGui::Text("Texture");
 
             bool hasTexture = material->hasDiffuseTexture();
-            ImGui::Text("Has Texture: %s", hasTexture ? "Yes" : "No");
+            ImGui::Text("Texture is applied: %s", hasTexture ? "Yes" : "No");
 
             if (hasTexture)
             {
@@ -206,7 +209,7 @@ void InspectorUI::renderTransform(std::shared_ptr<AGameObject> object)
 
     bool transformChanged = false;
 
-    if (ImGui::DragFloat3("Position", &position.x, 0.1f))
+    if (ImGui::DragFloat3("Position:", &position.x, 0.1f))
     {
         object->setPosition(position);
         transformChanged = true;
@@ -216,7 +219,7 @@ void InspectorUI::renderTransform(std::shared_ptr<AGameObject> object)
                                rotation.y * 180.0f / 3.14159f,
                                rotation.z * 180.0f / 3.14159f };
 
-    if (ImGui::DragFloat3("Rotation", &rotationDegrees.x, 1.0f))
+    if (ImGui::DragFloat3("Rotation:", &rotationDegrees.x, 1.0f))
     {
         rotation = { rotationDegrees.x * 3.14159f / 180.0f,
                     rotationDegrees.y * 3.14159f / 180.0f,
@@ -225,7 +228,7 @@ void InspectorUI::renderTransform(std::shared_ptr<AGameObject> object)
         transformChanged = true;
     }
 
-    if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 100.0f))
+    if (ImGui::DragFloat3("Scale:", &scale.x, 0.1f, 0.01f, 100.0f))
     {
         object->setScale(scale);
         transformChanged = true;
@@ -350,38 +353,13 @@ void InspectorUI::renderPrimitiveSelector(std::shared_ptr<AGameObject> object)
     // Quick material presets
     ImGui::Text("Material Presets:");
 
-    if (ImGui::Button("Metal"))
-    {
-        material->setDiffuseColor(Vector4(0.7f, 0.7f, 0.8f, 1.0f));
-        material->setAmbientColor(Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-        material->setSpecularColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-        material->setSpecularPower(64.0f);
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Plastic"))
-    {
-        material->setDiffuseColor(Vector4(0.8f, 0.2f, 0.2f, 1.0f));
-        material->setAmbientColor(Vector4(0.2f, 0.05f, 0.05f, 1.0f));
-        material->setSpecularColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-        material->setSpecularPower(32.0f);
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Rubber"))
-    {
-        material->setDiffuseColor(Vector4(0.3f, 0.3f, 0.3f, 1.0f));
-        material->setAmbientColor(Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-        material->setSpecularColor(Vector4(0.1f, 0.1f, 0.1f, 1.0f));
-        material->setSpecularPower(4.0f);
-    }
-
     if (ImGui::Button("Gold"))
     {
         material->setDiffuseColor(Vector4(1.0f, 0.843f, 0.0f, 1.0f));
         material->setAmbientColor(Vector4(0.2f, 0.169f, 0.0f, 1.0f));
         material->setSpecularColor(Vector4(1.0f, 1.0f, 0.8f, 1.0f));
         material->setSpecularPower(128.0f);
+        material->setOpacity(1.0f);
     }
 
     ImGui::SameLine();
@@ -392,6 +370,44 @@ void InspectorUI::renderPrimitiveSelector(std::shared_ptr<AGameObject> object)
         material->setSpecularColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
         material->setSpecularPower(128.0f);
         material->setOpacity(0.3f);
+    }
+
+    if (ImGui::Button("Metal"))
+    {
+        material->setDiffuseColor(Vector4(0.7f, 0.7f, 0.8f, 1.0f));
+        material->setAmbientColor(Vector4(0.1f, 0.1f, 0.1f, 1.0f));
+        material->setSpecularColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+        material->setSpecularPower(64.0f);
+        material->setOpacity(1.0f);
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Plastic"))
+    {
+        material->setDiffuseColor(Vector4(0.8f, 0.2f, 0.2f, 1.0f));
+        material->setAmbientColor(Vector4(0.2f, 0.05f, 0.05f, 1.0f));
+        material->setSpecularColor(Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+        material->setSpecularPower(32.0f);
+        material->setOpacity(0.5f);
+    }
+
+    if (ImGui::Button("Rubber"))
+    {
+        material->setDiffuseColor(Vector4(0.3f, 0.3f, 0.3f, 1.0f));
+        material->setAmbientColor(Vector4(0.1f, 0.1f, 0.1f, 1.0f));
+        material->setSpecularColor(Vector4(0.1f, 0.1f, 0.1f, 1.0f));
+        material->setSpecularPower(4.0f);
+        material->setOpacity(1.0f);
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Wood"))
+    {
+        material->setDiffuseColor(Vector4(0.55f, 0.27f, 0.07f, 1.0f));
+        material->setAmbientColor(Vector4(0.25f, 0.13f, 0.05f, 1.0f));
+        material->setSpecularColor(Vector4(0.3f, 0.2f, 0.1f, 1.0f));
+        material->setSpecularPower(8.0f);
+        material->setOpacity(1.0f);
     }
 
     // Material operations

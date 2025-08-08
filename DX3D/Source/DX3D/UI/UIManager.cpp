@@ -75,9 +75,9 @@ void UIManager::render(float deltaTime, const SpawnCallbacks& callbacks)
     // Set the callback for the "Load Scene" menu item
     menuCallbacks.onShowLoadSceneDialog = [this]() {
         if (m_getSceneFilesCallback) {
-            m_sceneFiles = m_getSceneFilesCallback(); // Get the latest list of files
+            m_sceneFiles = m_getSceneFilesCallback(); // Latest list of files
         }
-        m_isLoadScenePopupOpen = true; // Set the flag to open the popup
+        m_isLoadScenePopupOpen = true; // Allow popup
         };
 
 
@@ -89,7 +89,7 @@ void UIManager::render(float deltaTime, const SpawnCallbacks& callbacks)
     m_inspector->render();
     m_debugConsole->render();
 
-    // Render our new popup if it's supposed to be open
+    // Render the new popup if it's supposed to be open
     renderLoadScenePopup();
 }
 

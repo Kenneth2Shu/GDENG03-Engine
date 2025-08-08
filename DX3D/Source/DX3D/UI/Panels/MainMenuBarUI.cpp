@@ -126,16 +126,16 @@ void MainMenuBarUI::render(const Callbacks& callbacks)
                         callbacks.onSpawnSphere();
                 }
 
-                if (ImGui::MenuItem("Capsule", nullptr, false, isEditMode))
-                {
-                    if (callbacks.onSpawnCapsule)
-                        callbacks.onSpawnCapsule();
-                }
-
                 if (ImGui::MenuItem("Cylinder", nullptr, false, isEditMode))
                 {
                     if (callbacks.onSpawnCylinder)
                         callbacks.onSpawnCylinder();
+                }
+
+                if (ImGui::MenuItem("Capsule", nullptr, false, isEditMode))
+                {
+                    if (callbacks.onSpawnCapsule)
+                        callbacks.onSpawnCapsule();
                 }
 
                 if (ImGui::MenuItem("Plane", nullptr, false, isEditMode))
@@ -200,7 +200,7 @@ void MainMenuBarUI::render(const Callbacks& callbacks)
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Cube Demo"))
+            if (ImGui::MenuItem("Multiple Cubes Demo"))
             {
                 if (callbacks.onSpawnCubeDemo)
                     callbacks.onSpawnCubeDemo();

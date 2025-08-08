@@ -37,9 +37,13 @@ void SceneOutlinerUI::render(float deltaTime)
     float windowHeight = io.DisplaySize.y;
     float halfWidth = windowWidth * 0.5f;
     float halfHeight = windowHeight * 0.5f;
+    float topHeight = windowHeight * 0.6f;
+    float bottomHeight = windowHeight * 0.35f;
 
-    ImGui::SetNextWindowPos(ImVec2(halfWidth, 120));
-    ImGui::SetNextWindowSize(ImVec2(halfWidth, halfHeight - 120));
+    //ImGui::SetNextWindowPos(ImVec2(halfWidth, 120));
+    //ImGui::SetNextWindowSize(ImVec2(halfWidth, halfHeight - 120));
+    ImGui::SetNextWindowPos(ImVec2(0, topHeight + 50));
+    ImGui::SetNextWindowSize(ImVec2(windowWidth / 2, bottomHeight - 10));
     ImGui::Begin("Scene Outliner", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::Text("Physics Demo");
@@ -56,7 +60,7 @@ void SceneOutlinerUI::render(float deltaTime)
     }
 
     ImGui::Separator();
-    ImGui::Text("Scene Hierarchy");
+    ImGui::Text("Scene Hierarchy (Enabled / Disabled)");
     ImGui::BeginChild("Outliner", ImVec2(0, 0), true);
 
     renderHierarchy();
@@ -123,15 +127,15 @@ void SceneOutlinerUI::renderObjectNode(std::shared_ptr<AGameObject> object, int&
 
     if (!isEnabled)
     {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.2f, 0.2f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.3f, 0.3f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.1f, 0.1f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.3f, 0.3f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.4f, 0.4f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.1f, 0.1f, 1.0f));
     }
     else
     {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.2f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.6f, 0.3f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.4f, 0.1f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.15f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.3f, 0.1f, 1.0f));
     }
 
     const char* buttonLabel = isEnabled ? "E" : "D";
