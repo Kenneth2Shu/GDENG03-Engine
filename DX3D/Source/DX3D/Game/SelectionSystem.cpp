@@ -10,22 +10,17 @@ using namespace DirectX;
 SelectionSystem::SelectionSystem()
 {
 }
-
 SelectionSystem::~SelectionSystem()
 {
 }
 
-void SelectionSystem::setSelectedObject(std::shared_ptr<AGameObject> object)
-{
-    m_selectedObject = object;
-}
+
 
 std::shared_ptr<AGameObject> SelectionSystem::pickObject(
     const std::vector<std::shared_ptr<AGameObject>>& objects,
     const SceneCamera& camera,
     float mouseX, float mouseY,
-    ui32 viewportWidth, ui32 viewportHeight)
-{
+    ui32 viewportWidth, ui32 viewportHeight) {
     float ndcX = (2.0f * mouseX) / viewportWidth - 1.0f;
     float ndcY = 1.0f - (2.0f * mouseY) / viewportHeight;
 
@@ -49,46 +44,39 @@ std::shared_ptr<AGameObject> SelectionSystem::pickObject(
     std::shared_ptr<AGameObject> closestObject = nullptr;
     float closestT = std::numeric_limits<float>::max();
 
-    for (const auto& object : objects)
-    {
+    for (const auto& object : objects) {
         Vector3 objectPos = object->getPosition();
         Vector3 aabbMin = objectPos - Vector3(0.5f, 0.5f, 0.5f);
         Vector3 aabbMax = objectPos + Vector3(0.5f, 0.5f, 0.5f);
 
         float t;
-        if (rayIntersectsAABB(rayOrigin, rayDirection, aabbMin, aabbMax, t))
-        {
-            if (t < closestT)
-            {
+        if (rayIntersectsAABB(rayOrigin, rayDirection, aabbMin, aabbMax, t)) {
+            if (t < closestT) {
                 closestT = t;
                 closestObject = object;
             }
         }
     }
-
     return closestObject;
 }
 
 bool SelectionSystem::rayIntersectsAABB(const Vector3& rayOrigin, const Vector3& rayDir,
-    const Vector3& aabbMin, const Vector3& aabbMax, float& t)
-{
+    const Vector3& aabbMin, const Vector3& aabbMax, float& t) {
     float tmin = 0.0f;
     float tmax = std::numeric_limits<float>::max();
 
-    for (int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
         float origin = (i == 0) ? rayOrigin.x : (i == 1) ? rayOrigin.y : rayOrigin.z;
         float dir = (i == 0) ? rayDir.x : (i == 1) ? rayDir.y : rayDir.z;
         float min = (i == 0) ? aabbMin.x : (i == 1) ? aabbMin.y : aabbMin.z;
         float max = (i == 0) ? aabbMax.x : (i == 1) ? aabbMax.y : aabbMax.z;
 
-        if (std::abs(dir) < 0.0001f)
-        {
-            if (origin < min || origin > max)
+        if (std::abs(dir) < 0.0001f) {
+            if (origin < min || origin > max) {
                 return false;
+            }
         }
-        else
-        {
+        else {
             float t1 = (min - origin) / dir;
             float t2 = (max - origin) / dir;
 
@@ -104,4 +92,9 @@ bool SelectionSystem::rayIntersectsAABB(const Vector3& rayOrigin, const Vector3&
 
     t = tmin;
     return true;
+}
+
+// Setter
+void SelectionSystem::setSelectedObject(std::shared_ptr<AGameObject> object) {
+    m_selectedObject = object;
 }

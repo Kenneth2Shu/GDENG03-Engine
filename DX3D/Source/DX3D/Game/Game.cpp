@@ -102,18 +102,15 @@ dx3d::Game::Game(const GameDesc& desc) :
     DX3DLogInfo("Game initialized with ECS, Physics, and Scene State systems.");
 }
 
-dx3d::Game::~Game()
-{
+dx3d::Game::~Game() {
     DX3DLogInfo("Game deallocation started.");
 
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    for (const auto& go : m_gameObjects)
-    {
-        if (go->hasPhysics())
-        {
+    for (const auto& go : m_gameObjects) {
+        if (go->hasPhysics()) {
             go->disablePhysics();
         }
     }
@@ -125,8 +122,7 @@ dx3d::Game::~Game()
     if (m_solidDepthState) m_solidDepthState->Release();
 }
 
-void dx3d::Game::createRenderingResources()
-{
+void dx3d::Game::createRenderingResources() {
     auto& renderSystem = m_graphicsEngine->getRenderSystem();
     auto resourceDesc = renderSystem.getGraphicsResourceDesc();
     auto& deviceContext = renderSystem.getDeviceContext();
@@ -254,80 +250,58 @@ void dx3d::Game::createRenderingResources()
     DX3DLogInfo("Empty scene initialized - use GameObjects menu to add objects!");
 }
 
-void dx3d::Game::processInput(float deltaTime)
-{
+void dx3d::Game::processInput(float deltaTime) {
     auto& input = Input::getInstance();
 
     // Undo/Redo shortcuts (only in edit mode)
-    if (m_sceneStateManager->isEditMode())
-    {
-        if (input.isKeyJustPressedWithShiftCtrl(KeyCode::Z))
-        {
+    if (m_sceneStateManager->isEditMode()) {
+        if (input.isKeyJustPressedWithShiftCtrl(KeyCode::Z)) {
             // Redo: Shift + Ctrl + Z
-            if (m_undoRedoSystem->canRedo())
-            {
+            if (m_undoRedoSystem->canRedo()) {
                 m_undoRedoSystem->redo();
                 DX3DLogInfo("Redo action performed");
             }
         }
-        else if (input.isKeyJustPressedWithCtrl(KeyCode::Z))
-        {
+        else if (input.isKeyJustPressedWithCtrl(KeyCode::Z)) {
             // Undo: Ctrl + Z
-            if (m_undoRedoSystem->canUndo())
-            {
+            if (m_undoRedoSystem->canUndo()) {
                 m_undoRedoSystem->undo();
                 DX3DLogInfo("Undo action performed");
             }
         }
 
-        // Delete selected object
-        if (input.isKeyJustPressed(KeyCode::Delete))
-        {
+        if (input.isKeyJustPressed(KeyCode::Delete)) {
             auto selectedObject = m_selectionSystem->getSelectedObject();
-            if (selectedObject)
-            {
-                // Create delete action and execute it through undo system
+            if (selectedObject) {
                 auto deleteAction = std::make_unique<DeleteAction>(selectedObject, m_gameObjects, m_lights);
                 m_undoRedoSystem->executeAction(std::move(deleteAction));
-
-                // Clear selection since object is deleted
                 m_selectionSystem->setSelectedObject(nullptr);
                 DX3DLogInfo("Deleted selected object");
             }
         }
     }
 
-    if (input.isKeyJustPressed(KeyCode::F5))
-    {
-        if (m_sceneStateManager->isEditMode())
-        {
+    if (input.isKeyJustPressed(KeyCode::F5)) {
+        if (m_sceneStateManager->isEditMode()) {
             m_sceneStateManager->transitionToPlay();
         }
-        else if (m_sceneStateManager->isPlayMode() || m_sceneStateManager->isPauseMode())
-        {
+        else if (m_sceneStateManager->isPlayMode() || m_sceneStateManager->isPauseMode()) {
             m_sceneStateManager->transitionToEdit();
         }
     }
-
-    if (input.isKeyJustPressed(KeyCode::Space) && m_sceneStateManager->isPlayMode())
-    {
+    if (input.isKeyJustPressed(KeyCode::Space) && m_sceneStateManager->isPlayMode()) {
         m_sceneStateManager->transitionToPause();
     }
-
-    if (input.isKeyJustPressed(KeyCode::F10) && m_sceneStateManager->isPauseMode())
-    {
+    if (input.isKeyJustPressed(KeyCode::F10) && m_sceneStateManager->isPauseMode()) {
         m_sceneStateManager->frameStep();
     }
-
-    if (input.isKeyJustPressed(KeyCode::F5) && m_sceneStateManager->isPauseMode())
-    {
+    if (input.isKeyJustPressed(KeyCode::F5) && m_sceneStateManager->isPauseMode()) {
         m_sceneStateManager->transitionToPlay();
     }
 
     auto& sceneViewport = m_viewportManager->getViewport(ViewportType::Scene);
 
-    if (sceneViewport.isFocused && input.isMouseButtonPressed(MouseButton::Right))
-    {
+    if (sceneViewport.isFocused && input.isMouseButtonPressed(MouseButton::Right)) {
         float moveSpeed = m_cameraSpeed * deltaTime;
         if (input.isKeyPressed(KeyCode::W)) m_sceneCamera->moveForward(moveSpeed);
         if (input.isKeyPressed(KeyCode::S)) m_sceneCamera->moveBackward(moveSpeed);
@@ -339,17 +313,14 @@ void dx3d::Game::processInput(float deltaTime)
         float mouseDeltaX = static_cast<float>(input.getMouseDeltaX());
         float mouseDeltaY = static_cast<float>(input.getMouseDeltaY());
 
-        if (mouseDeltaX != 0.0f || mouseDeltaY != 0.0f)
-        {
+        if (mouseDeltaX != 0.0f || mouseDeltaY != 0.0f) {
             m_sceneCamera->onMouseMove(mouseDeltaX, mouseDeltaY, m_mouseSensitivity * 0.01f);
         }
     }
 
     // Object selection only in edit mode
-    if (m_sceneStateManager->isEditMode())
-    {
-        if (sceneViewport.isHovered && input.isMouseButtonJustPressed(MouseButton::Left))
-        {
+    if (m_sceneStateManager->isEditMode()) {
+        if (sceneViewport.isHovered && input.isMouseButtonJustPressed(MouseButton::Left)) {
             auto picked = m_selectionSystem->pickObject(
                 m_gameObjects,
                 *m_sceneCamera,
@@ -361,9 +332,6 @@ void dx3d::Game::processInput(float deltaTime)
             m_selectionSystem->setSelectedObject(picked);
         }
     }
-
-
-    // Create new cube (only in edit mode)
     if (input.isKeyJustPressed(KeyCode::Space) && m_sceneStateManager->isEditMode())
     {
         std::random_device rd;
@@ -381,82 +349,67 @@ void dx3d::Game::processInput(float deltaTime)
         cube->setPhysicsRestitution(0.5f);
         cube->setPhysicsFriction(0.5f);
 
-        // Create through undo system
         auto createAction = std::make_unique<CreateAction>(cube, m_gameObjects);
         m_undoRedoSystem->executeAction(std::move(createAction));
         DX3DLogInfo("Added new physics cube!");
     }
 
-    if (input.isKeyJustPressed(KeyCode::F))
-    {
+    if (input.isKeyJustPressed(KeyCode::F)) {
         auto selectedObject = m_selectionSystem->getSelectedObject();
-        if (selectedObject && selectedObject->hasPhysics())
-        {
+        if (selectedObject && selectedObject->hasPhysics()) {
             selectedObject->applyImpulse(Vector3(0.0f, 10.0f, 0.0f));
             DX3DLogInfo("Applied upward impulse to selected object!");
         }
     }
-
-    if (input.isKeyJustPressed(KeyCode::R))
-    {
+    if (input.isKeyJustPressed(KeyCode::R)) {
         m_sceneCamera->setPosition(Vector3(20.0f, 15.0f, -20.0f));
         m_sceneCamera->lookAt(Vector3(0.0f, 2.0f, 0.0f));
     }
-
-    if (input.isKeyPressed(KeyCode::Escape))
-    {
+    if (input.isKeyPressed(KeyCode::Escape)) {
         m_isRunning = false;
     }
 }
 
-void dx3d::Game::update()
-{
+void dx3d::Game::update() {
     auto currentTime = std::chrono::steady_clock::now();
     m_deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - m_previousTime).count() / 1000000.0f;
     m_previousTime = currentTime;
 
+    // ImGUI
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
     m_sceneStateManager->update(m_deltaTime);
-
     processInput(m_deltaTime);
-
     m_sceneCamera->update();
 
-    if (m_sceneStateManager->isPlayMode())
-    {
+    if (m_sceneStateManager->isPlayMode()) {
         m_fpsController->update(m_deltaTime);
     }
-
-
-    if(m_deltaTime > 0.0f)
+    if (m_deltaTime > 0.0f) {
         updatePhysics(m_deltaTime);
+    }
 
-    for (auto& gameObject : m_gameObjects)
-    {
-        if (gameObject->isEnabled())
-        {
+    for (auto& gameObject : m_gameObjects) {
+        if (gameObject->isEnabled()) {
             gameObject->update(m_deltaTime);
         }
     }
 
     static float debugTimer = 0.0f;
     debugTimer += m_deltaTime;
-    if (debugTimer >= 5.0f)
-    {
+    if (debugTimer >= 5.0f) {
         DX3DLogInfo(("Physics demo running - " + std::to_string(m_gameObjects.size()) + " objects").c_str());
         debugTimer = 0.0f;
     }
 }
 
-void dx3d::Game::loadScene(const std::string& filename)
-{
+void dx3d::Game::loadScene(const std::string& filename) {
     const std::string saveDir = "Saved Scenes";
     fs::path fullPath = fs::path(saveDir) / filename;
-
     std::ifstream i(fullPath);
+
     if (!i.is_open())
     {
         DX3DLogError(("Failed to open scene file: " + fullPath.string()).c_str());
@@ -479,11 +432,9 @@ void dx3d::Game::loadScene(const std::string& filename)
     m_undoRedoSystem->clear();
 
     // --- 1. LOAD SCENE CAMERA ---
-    if (sceneJson.contains("SceneCameraData") && sceneJson["SceneCameraData"].is_array() && !sceneJson["SceneCameraData"].empty())
-    {
+    if (sceneJson.contains("SceneCameraData") && sceneJson["SceneCameraData"].is_array() && !sceneJson["SceneCameraData"].empty()) {
         const auto& sceneCamJson = sceneJson["SceneCameraData"][0];
-        if (sceneCamJson.contains("position") && sceneCamJson.contains("yaw") && sceneCamJson.contains("pitch"))
-        {
+        if (sceneCamJson.contains("position") && sceneCamJson.contains("yaw") && sceneCamJson.contains("pitch")) {
             Vector3 position(
                 sceneCamJson["position"]["x"],
                 sceneCamJson["position"]["y"],
@@ -494,7 +445,6 @@ void dx3d::Game::loadScene(const std::string& filename)
 
             m_sceneCamera->setPosition(position);
 
-            // Recalculate the forward vector to orient the camera correctly
             Vector3 forward;
             forward.x = sin(yaw) * cos(pitch);
             forward.y = sin(pitch);
@@ -503,15 +453,11 @@ void dx3d::Game::loadScene(const std::string& filename)
         }
     }
 
-    // --- 2. LOAD GAME OBJECTS ---
-    if (sceneJson.contains("gameObjects") && sceneJson["gameObjects"].is_array())
-    {
-        for (const auto& goJson : sceneJson["gameObjects"])
-        {
+    if (sceneJson.contains("gameObjects") && sceneJson["gameObjects"].is_array()) {
+        for (const auto& goJson : sceneJson["gameObjects"]) {
             std::string type = goJson.value("type", "Unknown");
             std::shared_ptr<AGameObject> newObject = nullptr;
 
-            // --- Object Creation without Factory ---
             if (type == "Cube") {
                 newObject = std::make_shared<Cube>();
             }
@@ -542,15 +488,14 @@ void dx3d::Game::loadScene(const std::string& filename)
                     auto& renderSystem = m_graphicsEngine->getRenderSystem();
                     newObject = Model::LoadFromFile(filePath, renderSystem.getGraphicsResourceDesc());
                 }
-                else {
-                    newObject = std::make_shared<Model>(); // Create a default model if path is missing
+                else {// Default empty
+                    newObject = std::make_shared<Model>();
                 }
             }
-            // Add any other object types here in the future
 
             if (!newObject) {
                 DX3DLogWarning(("Unknown or unsupported object type in scene file: " + type).c_str());
-                continue; // Skip this object and move to the next
+                continue;
             }
 
             // Load transform properties
@@ -567,7 +512,6 @@ void dx3d::Game::loadScene(const std::string& filename)
                     if (typeStr == "Kinematic") return PhysicsBodyType::Kinematic;
                     return PhysicsBodyType::Dynamic;
                     };
-
                 PhysicsBodyType bodyType = bodyTypeFromString(goJson["physics"].value("bodyType", "Dynamic"));
                 newObject->enablePhysics(bodyType);
                 newObject->setPhysicsMass(goJson["physics"].value("mass", 1.0f));
@@ -575,24 +519,20 @@ void dx3d::Game::loadScene(const std::string& filename)
                 newObject->setPhysicsFriction(goJson["physics"].value("friction", 0.5f));
             }
 
-            // Load light properties
-            if (auto light = std::dynamic_pointer_cast<LightObject>(newObject))
-            {
+            // Load the light properties
+            if (auto light = std::dynamic_pointer_cast<LightObject>(newObject)) {
                 auto& lightData = light->getLightData();
-                if (goJson.contains("lightPosition"))
-                {
+                if (goJson.contains("lightPosition")) {
                     lightData.position.x = goJson["lightPosition"]["x"];
                     lightData.position.y = goJson["lightPosition"]["y"];
                     lightData.position.z = goJson["lightPosition"]["z"];
                 }
-                if (goJson.contains("lightColor"))
-                {
+                if (goJson.contains("lightColor")) {
                     lightData.color.x = goJson["lightColor"]["r"];
                     lightData.color.y = goJson["lightColor"]["g"];
                     lightData.color.z = goJson["lightColor"]["b"];
                 }
-                if (goJson.contains("lightDirection"))
-                {
+                if (goJson.contains("lightDirection")) {
                     lightData.direction.x = goJson["lightDirection"]["x"];
                     lightData.direction.y = goJson["lightDirection"]["y"];
                     lightData.direction.z = goJson["lightDirection"]["z"];
@@ -606,27 +546,20 @@ void dx3d::Game::loadScene(const std::string& filename)
 
                 m_lights.push_back(light);
             }
-
             m_gameObjects.push_back(newObject);
         }
     }
-
     m_gameObjects.push_back(m_gameCamera);
-
-    DX3DLogInfo(("Scene loaded successfully from " + filename).c_str());
+    DX3DLogInfo(("SCENE: Scene loaded successfully from " + filename).c_str());
 }
 
-std::vector<std::string> dx3d::Game::getSavedSceneFiles() const
-{
+std::vector<std::string> dx3d::Game::getSavedSceneFiles() const {
     std::vector<std::string> files;
     const std::string saveDir = "Saved Scenes";
 
-    if (fs::exists(saveDir) && fs::is_directory(saveDir))
-    {
-        for (const auto& entry : fs::directory_iterator(saveDir))
-        {
-            if (entry.is_regular_file() && entry.path().extension() == ".json")
-            {
+    if (fs::exists(saveDir) && fs::is_directory(saveDir)) {
+        for (const auto& entry : fs::directory_iterator(saveDir)) {
+            if (entry.is_regular_file() && entry.path().extension() == ".json") {
                 files.push_back(entry.path().filename().string());
             }
         }
@@ -634,38 +567,29 @@ std::vector<std::string> dx3d::Game::getSavedSceneFiles() const
     return files;
 }
 
-std::string dx3d::Game::getCurrentTimeAndDate()
-{
+std::string dx3d::Game::getCurrentTimeAndDate() {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
-    // Create a tm struct to safely hold the time components
     std::tm tm_buf;
-    // Use the thread-safe localtime_s instead of localtime
     localtime_s(&tm_buf, &in_time_t);
-
     std::stringstream ss;
-    // Pass the address of your local tm struct to std::put_time
     ss << std::put_time(&tm_buf, "%Y-%m-%d_%H-%M-%S");
     std::string filename = ss.str() + ".json";
 
     return filename;
 }
 
-void dx3d::Game::saveScene()
-{
+void dx3d::Game::saveScene() {
     const std::string saveDir = "Saved Scenes";
     std::string filename = this->getCurrentTimeAndDate();
 
-    try 
-    {
+    try  {
         fs::create_directory(saveDir);
         fs::path fullPath = fs::path(saveDir) / filename;
 
         json sceneJson;
         sceneJson["sceneName"] = "MyScene";
         sceneJson["SceneCameraData"] = json::array();
-
         json sceneCamJson;
 
         sceneCamJson["position"] = { {"x", this->m_sceneCamera->getPosition().x}, {"y", this->m_sceneCamera->getPosition().y}, {"z", this->m_sceneCamera->getPosition().z} };
@@ -679,11 +603,9 @@ void dx3d::Game::saveScene()
         sceneCamJson["roll"] = this->m_sceneCamera->getRoll();
 
         json matrixArray = json::array();
-        for (int i = 0; i < 4; i++)
-        {
+        for (int i = 0; i < 4; i++) {
             json rowArray = json::array();
-            for (int j = 0; j < 4; j++)
-            {
+            for (int j = 0; j < 4; j++) {
                 rowArray.push_back(this->m_sceneCamera->getViewMatrix().m[i][j]);
             }
             matrixArray.push_back(rowArray);
@@ -691,16 +613,13 @@ void dx3d::Game::saveScene()
 
         sceneCamJson["viewMatrix"] = matrixArray;
         sceneJson["SceneCameraData"].push_back(sceneCamJson);
-
         sceneJson["gameObjects"] = json::array();
 
         if (!this->m_gameObjects.empty()) {
-            for (const auto& go : m_gameObjects)
-            {
+            for (const auto& go : m_gameObjects) {
                 json goJson;
-                // Determine object type
-                if (auto model = std::dynamic_pointer_cast<Model>(go))
-                {
+                
+                if (auto model = std::dynamic_pointer_cast<Model>(go)) {
                     goJson["type"] = "Model";
                     goJson["filePath"] = model->getFilePath();
                 }
@@ -713,11 +632,9 @@ void dx3d::Game::saveScene()
                 goJson["scale"] = { {"x", go->getScale().x}, {"y", go->getScale().y}, {"z", go->getScale().z} };
 
                 // Save physics
-                if (go->hasPhysics())
-                {
+                if (go->hasPhysics()) {
                     auto* physicsComp = dx3d::ComponentManager::getInstance().getComponent<PhysicsComponent>(go->getEntity().getID());
-                    if (physicsComp)
-                    {
+                    if (physicsComp) {
                         // Helper to convert enum to string
                         auto bodyTypeToString = [](PhysicsBodyType type) {
                             switch (type) {
@@ -726,7 +643,7 @@ void dx3d::Game::saveScene()
                             case PhysicsBodyType::Dynamic: return "Dynamic";
                             default: return "Unknown";
                             }
-                            };
+                        };
 
                         goJson["physics"] = {
                             {"enabled", true},
@@ -737,33 +654,13 @@ void dx3d::Game::saveScene()
                         };
                     }
                 }
-                else
-                {
+                else {
                     goJson["physics"] = {
                         {"enabled", false}
                     };
                 }
 
-                /*if (go->hasMaterial()) {
-                    auto* materialComp = dx3d::ComponentManager::getInstance().getComponent<MaterialComponent>(go->getEntity().getID());
-                    if (materialComp) {
-
-                        goJson["material"] = {
-                            //
-                        }
-                        std::shared_ptr<Material> material;
-                        std::string textureFileName;
-                        bool hasTexture = false;
-                    }
-                }
-                else {
-                    goJson["material"] = {
-                        {"enabled", false}
-                    };
-                }*/
-
-                if (auto light = std::dynamic_pointer_cast<LightObject>(go))
-                {
+                if (auto light = std::dynamic_pointer_cast<LightObject>(go)) {
                     const auto& lightData = light->getLightData();
                     goJson["lightPosition"] = { {"x", lightData.position.x}, {"y", lightData.position.y}, {"z", lightData.position.z} };
                     goJson["lightColor"] = { {"r", lightData.color.x}, {"g", lightData.color.y}, {"b", lightData.color.z} };
@@ -777,26 +674,20 @@ void dx3d::Game::saveScene()
                 }
                 sceneJson["gameObjects"].push_back(goJson);
             }
-
         }
-
         std::ofstream o(fullPath);
         o << std::setw(4) << sceneJson << std::endl;
         DX3DLogInfo(("Scene saved to " + filename).c_str());
     }
-    catch (const fs::filesystem_error& e)
-    {
+    catch (const fs::filesystem_error& e) {
         DX3DLogError(("Filesystem error: " + std::string(e.what())).c_str());
     }
 }
 
-void dx3d::Game::onSceneStateChanged(SceneState oldState, SceneState newState)
-{
-    switch (newState)
-    {
+void dx3d::Game::onSceneStateChanged(SceneState oldState, SceneState newState) {
+    switch (newState) {
     case SceneState::Edit:
-        if (oldState == SceneState::Play || oldState == SceneState::Pause)
-        {
+        if (oldState == SceneState::Play || oldState == SceneState::Pause) {
             m_sceneStateManager->restoreObjectStates(m_gameObjects);
         }
         m_fpsController->disable();
@@ -806,8 +697,7 @@ void dx3d::Game::onSceneStateChanged(SceneState oldState, SceneState newState)
         break;
 
     case SceneState::Play:
-        if (oldState == SceneState::Edit)
-        {
+        if (oldState == SceneState::Edit) {
             m_sceneStateManager->saveObjectStates(m_gameObjects);
         }
         m_fpsController->enable();
@@ -824,34 +714,25 @@ void dx3d::Game::onSceneStateChanged(SceneState oldState, SceneState newState)
     }
 }
 
-void dx3d::Game::updatePhysics(float deltaTime)
-{
-    if (!m_physicsUpdateEnabled)
-    {
-        // Handle frame step in pause mode
-        if (m_sceneStateManager->isPauseMode() && m_sceneStateManager->isFrameStepRequested())
-        {
+void dx3d::Game::updatePhysics(float deltaTime) {
+    if (!m_physicsUpdateEnabled) {
+        if (m_sceneStateManager->isPauseMode() && m_sceneStateManager->isFrameStepRequested()) {
             PhysicsSystem::getInstance().update(1.0f / 60.0f);
-            // Clear the frame step request after physics update
             m_sceneStateManager->clearFrameStepRequest();
         }
         return;
     }
 
-    if (m_sceneStateManager->isPlayMode())
-    {
+    if (m_sceneStateManager->isPlayMode()) {
         PhysicsSystem::getInstance().update(deltaTime);
     }
 }
 
-void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, RenderTexture* renderTarget)
-{
+void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, RenderTexture* renderTarget) {
     auto& renderSystem = m_graphicsEngine->getRenderSystem();
     auto& deviceContext = renderSystem.getDeviceContext();
     auto d3dContext = deviceContext.getDeviceContext();
-
     LightConstantBuffer lcb;
-    //new
     memset(&lcb, 0, sizeof(LightConstantBuffer));
 
     Vector3 camPos = camera.getPosition();
@@ -860,23 +741,20 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
     lcb.num_lights = static_cast<UINT>(std::min((size_t)m_lights.size(), (size_t)MAX_LIGHTS_SUPPORTED));
     lcb.shadow_casting_light_index = m_shadowCastingLightIndex;
 
-    for (int i = 0; i < lcb.num_lights; ++i)
-    {
+    for (int i = 0; i < lcb.num_lights; ++i) {
         lcb.lights[i] = m_lights[i]->getLightData();
     }
+
     lcb.light_view = Matrix4x4::fromXMMatrix(DirectX::XMMatrixTranspose(m_lightViewMatrix.toXMMatrix()));
     lcb.light_projection = Matrix4x4::fromXMMatrix(DirectX::XMMatrixTranspose(m_lightProjectionMatrix.toXMMatrix()));
 
     m_lightConstantBuffer->update(deviceContext, &lcb);
 
-
-    if (renderTarget)
-    {
+    if (renderTarget) {
         renderTarget->clear(deviceContext, 0.1f, 0.1f, 0.2f, 1.0f);
         renderTarget->setAsRenderTarget(deviceContext);
     }
-    else
-    {
+    else {
         auto& swapChain = m_display->getSwapChain();
         deviceContext.clearRenderTargetColor(swapChain, 0.1f, 0.1f, 0.2f, 1.0f);
         deviceContext.clearDepthBuffer(*m_depthBuffer);
@@ -893,10 +771,7 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
 
     bool isSceneView = (&camera == m_sceneCamera.get());
 
-
-
-    for (const auto& gameObject : m_gameObjects)
-    {
+    for (const auto& gameObject : m_gameObjects) {
         if (!gameObject->isEnabled())
             continue;
 
@@ -928,52 +803,45 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
             indexCount = Cube::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto plane = std::dynamic_pointer_cast<Plane>(gameObject))
-        {
+        else if (auto plane = std::dynamic_pointer_cast<Plane>(gameObject)) {
             deviceContext.setVertexBuffer(*m_planeVertexBuffer);
             deviceContext.setIndexBuffer(*m_planeIndexBuffer);
             indexCount = Plane::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto sphere = std::dynamic_pointer_cast<Sphere>(gameObject))
-        {
+        else if (auto sphere = std::dynamic_pointer_cast<Sphere>(gameObject)) {
             deviceContext.setVertexBuffer(*m_sphereVertexBuffer);
             deviceContext.setIndexBuffer(*m_sphereIndexBuffer);
             indexCount = Sphere::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto cylinder = std::dynamic_pointer_cast<Cylinder>(gameObject))
-        {
+        else if (auto cylinder = std::dynamic_pointer_cast<Cylinder>(gameObject)) {
             deviceContext.setVertexBuffer(*m_cylinderVertexBuffer);
             deviceContext.setIndexBuffer(*m_cylinderIndexBuffer);
             indexCount = Cylinder::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto capsule = std::dynamic_pointer_cast<Capsule>(gameObject))
-        {
+        else if (auto capsule = std::dynamic_pointer_cast<Capsule>(gameObject)) {
             deviceContext.setVertexBuffer(*m_capsuleVertexBuffer);
             deviceContext.setIndexBuffer(*m_capsuleIndexBuffer);
             indexCount = Capsule::GetIndexCount();
             bufferSet = true;
         }
 
-        else if (auto model = std::dynamic_pointer_cast<Model>(gameObject))
-        {
+        else if (auto model = std::dynamic_pointer_cast<Model>(gameObject)) {
             // Handle Model rendering
-            if (model->isReadyForRendering())
-            {
+            if (model->isReadyForRendering()) {
                 // Switch to model shaders
                 deviceContext.setVertexShader(m_modelVertexShader->getShader());
                 deviceContext.setPixelShader(m_modelPixelShader->getShader());
                 deviceContext.setInputLayout(m_modelVertexShader->getInputLayout());
 
-                // Set up model material constant buffer
                 ModelMaterialConstants mmc = {};
 
-                // Render each mesh in the model
-                for (size_t meshIdx = 0; meshIdx < model->getMeshCount(); ++meshIdx)
-                {
+                // Render meshes
+                for (size_t meshIdx = 0; meshIdx < model->getMeshCount(); ++meshIdx) {
                     auto mesh = model->getMesh(meshIdx);
+
                     if (!mesh || !mesh->isReadyForRendering())
                         continue;
 
@@ -983,8 +851,8 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
 
                     // Set up material
                     auto material = mesh->getMaterial();
-                    if (material)
-                    {
+
+                    if (material) {
                         mmc.diffuseColor = material->getDiffuseColor();
                         mmc.ambientColor = material->getAmbientColor();
                         mmc.specularColor = material->getSpecularColor();
@@ -994,8 +862,7 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
                         mmc.hasTexture = material->hasDiffuseTexture();
 
                         // Set texture if available
-                        if (material->hasDiffuseTexture())
-                        {
+                        if (material->hasDiffuseTexture()) {
                             auto texture = material->getDiffuseTexture();
                             ID3D11ShaderResourceView* srv = texture->getShaderResourceView();
                             ID3D11SamplerState* sampler = texture->getSamplerState();
@@ -1003,8 +870,7 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
                             d3dContext->PSSetSamplers(0, 1, &sampler);
                         }
                     }
-                    else
-                    {
+                    else {
                         // Default material
                         mmc.diffuseColor = Vector4(0.7f, 0.7f, 0.7f, 1.0f);
                         mmc.ambientColor = Vector4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -1015,36 +881,29 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
                         mmc.hasTexture = false;
                     }
 
-                    // Update material constant buffer
                     m_modelMaterialConstantBuffer->update(deviceContext, &mmc);
                     ID3D11Buffer* materialCb = m_modelMaterialConstantBuffer->getBuffer();
                     d3dContext->PSSetConstantBuffers(1, 1, &materialCb);
 
-                    // Set transformation matrix
                     TransformationMatrices transformMatrices;
                     transformMatrices.world = Matrix4x4::fromXMMatrix(DirectX::XMMatrixTranspose(gameObject->getWorldMatrix().toXMMatrix()));
                     transformMatrices.view = Matrix4x4::fromXMMatrix(DirectX::XMMatrixTranspose(camera.getViewMatrix().toXMMatrix()));
                     transformMatrices.projection = Matrix4x4::fromXMMatrix(DirectX::XMMatrixTranspose(projMatrix.toXMMatrix()));
                     m_transformConstantBuffer->update(deviceContext, &transformMatrices);
 
-                    // Draw this mesh
                     deviceContext.drawIndexed(mesh->getIndexCount(), 0, 0);
                 }
-
-                // Reset to fog shaders for other objects
                 deviceContext.setVertexShader(m_fogVertexShader->getShader());
                 deviceContext.setPixelShader(m_fogPixelShader->getShader());
                 deviceContext.setInputLayout(m_fogVertexShader->getInputLayout());
-                continue; // Skip the normal primitive rendering path
+                continue;
             }
         }
 
-        if (bufferSet)
-        {
+        if (bufferSet) {
             // Setup material for this object (reads from ECS MaterialComponent)
             setupMaterialForObject(gameObject, deviceContext);
 
-            // Set material constant buffer
             ID3D11Buffer* materialCb = m_modelMaterialConstantBuffer->getBuffer();
             d3dContext->PSSetConstantBuffers(1, 1, &materialCb);
 
@@ -1062,8 +921,7 @@ void dx3d::Game::renderScene(SceneCamera& camera, const Matrix4x4& projMatrix, R
     d3dContext->PSSetShaderResources(1, 1, nullSRV);
 }
 
-void dx3d::Game::renderShadowMapPass()
-{
+void dx3d::Game::renderShadowMapPass() {
     auto& deviceContext = m_graphicsEngine->getRenderSystem().getDeviceContext();
     auto d3dContext = deviceContext.getDeviceContext();
 
@@ -1079,7 +937,6 @@ void dx3d::Game::renderShadowMapPass()
             break;
         }
     }
-    // If no Directional Light was found, find the first Spot Light.
     if (!shadowCastingObject) {
         for (int i = 0; i < m_lights.size(); ++i) {
             if (m_lights[i] && m_lights[i]->getLightData().type == LIGHT_TYPE_SPOT) {
@@ -1090,8 +947,7 @@ void dx3d::Game::renderShadowMapPass()
         }
     }
 
-    if (!shadowCastingObject)
-    {
+    if (!shadowCastingObject) {
         m_lightViewMatrix = Matrix4x4();
         m_lightProjectionMatrix = Matrix4x4();
         return;
@@ -1108,15 +964,13 @@ void dx3d::Game::renderShadowMapPass()
 
     Matrix4x4 lightView, lightProjection;
 
-    if (shadowCastingLight->type == LIGHT_TYPE_DIRECTIONAL)
-    {
+    if (shadowCastingLight->type == LIGHT_TYPE_DIRECTIONAL) {
         Vector3 lightPos = Vector3(0, 0, 0) - (shadowCastingLight->direction * 50.0f);
         Vector3 target = Vector3(0, 0, 0);
         lightView = Matrix4x4::CreateLookAtLH(lightPos, target, Vector3(0, 1, 0));
         lightProjection = Matrix4x4::fromXMMatrix(DirectX::XMMatrixOrthographicLH(40.0f, 40.0f, 1.0f, 100.0f));
     }
-    else if (shadowCastingLight->type == LIGHT_TYPE_SPOT)
-    {
+    else if (shadowCastingLight->type == LIGHT_TYPE_SPOT) {
         // Get the world matrix of the light source itself
         Matrix4x4 world = shadowCastingObject->getWorldMatrix();
         DirectX::XMMATRIX xmWorld = world.toXMMatrix(); // Convert to DirectX matrix
@@ -1139,7 +993,6 @@ void dx3d::Game::renderShadowMapPass()
         // Convert back to your Vector3 class
         Vector3 up = Vector3(worldUp);
 
-        // Position and Target are calculated as before
         Vector3 lightPos(world.m[3][0], world.m[3][1], world.m[3][2]);
         Vector3 target = lightPos + lightDir;
 
@@ -1149,25 +1002,12 @@ void dx3d::Game::renderShadowMapPass()
         float fov_radians = DirectX::XMConvertToRadians(fov_degrees);
 
         lightProjection = Matrix4x4::CreatePerspectiveFovLH(
-            fov_radians, // Use the corrected value in radians
+            fov_radians,
             1.0f,
             0.1f,
             shadowCastingLight->radius
         );
     }
-    /*else if (shadowCastingLight->type == LIGHT_TYPE_SPOT)
-    {
-        Vector3 lightPos = shadowCastingLight->position;
-        Vector3 lightDir = Vector3::Normalize(shadowCastingLight->direction);
-        Vector3 target = lightPos + lightDir;
-
-        // Get the 'up' vector directly from the game object's transform matrix.
-        Matrix4x4 world = shadowCastingObject->getWorldMatrix();
-        Vector3 up = Vector3::Normalize(Vector3(world.m[1][0], world.m[1][1], world.m[1][2]));
-
-        lightView = Matrix4x4::CreateLookAtLH(lightPos, target, up);
-        lightProjection = Matrix4x4::CreatePerspectiveFovLH(shadowCastingLight->spot_angle_outer * 2.0f, 1.0f, 0.1f, shadowCastingLight->radius);
-    }*/
 
     // Store the calculated matrices for the main render pass
     m_lightViewMatrix = lightView;
@@ -1203,22 +1043,19 @@ void dx3d::Game::renderShadowMapPass()
             indexCount = Plane::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto sphere = std::dynamic_pointer_cast<Sphere>(gameObject))
-        {
+        else if (auto sphere = std::dynamic_pointer_cast<Sphere>(gameObject)) {
             deviceContext.setVertexBuffer(*m_sphereVertexBuffer);
             deviceContext.setIndexBuffer(*m_sphereIndexBuffer);
             indexCount = Sphere::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto cylinder = std::dynamic_pointer_cast<Cylinder>(gameObject))
-        {
+        else if (auto cylinder = std::dynamic_pointer_cast<Cylinder>(gameObject)) {
             deviceContext.setVertexBuffer(*m_cylinderVertexBuffer);
             deviceContext.setIndexBuffer(*m_cylinderIndexBuffer);
             indexCount = Cylinder::GetIndexCount();
             bufferSet = true;
         }
-        else if (auto capsule = std::dynamic_pointer_cast<Capsule>(gameObject))
-        {
+        else if (auto capsule = std::dynamic_pointer_cast<Capsule>(gameObject)) {
             deviceContext.setVertexBuffer(*m_capsuleVertexBuffer);
             deviceContext.setIndexBuffer(*m_capsuleIndexBuffer);
             indexCount = Capsule::GetIndexCount();
@@ -1232,15 +1069,14 @@ void dx3d::Game::renderShadowMapPass()
 }
 
 void dx3d::Game::PrintMatrix(const char* name, const Matrix4x4& mat) {
-    printf("--- Matrix: %s ---\n", name);
+    printf("-- MATRIX: %s --\n", name);
     for (int i = 0; i < 4; ++i) {
         printf("  [%.2f, %.2f, %.2f, %.2f]\n", mat.m[i][0], mat.m[i][1], mat.m[i][2], mat.m[i][3]);
     }
-    printf("-----------------------\n");
+    printf("---------------------\n");
 }
 
-void dx3d::Game::render()
-{
+void dx3d::Game::render() {
     renderShadowMapPass();
 
     auto& renderSystem = m_graphicsEngine->getRenderSystem();
@@ -1279,36 +1115,31 @@ void dx3d::Game::render()
     [this](const std::string& filename) { loadScene(filename); }
     };
 
+    // Render calls
     m_uiManager->render(m_deltaTime, spawnCallbacks);
-
-    //renderUI();
-
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     deviceContext.present(swapChain);
 }
 
-void dx3d::Game::alignGameCameraWithView()
-{
-    if (m_gameCamera)
-    {
+void dx3d::Game::alignGameCameraWithView() {
+    if (m_gameCamera) {
         m_gameCamera->alignWithView(*m_sceneCamera);
-        DX3DLogInfo("Game camera aligned with scene view");
+        DX3DLogInfo("CAMERA: Game camera aligned with scene camera");
     }
 }
 
-void dx3d::Game::spawnCubeDemo()
-{
+void dx3d::Game::spawnCubeDemo() {
+    // Randomizer
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> posX(1.0f, 5.0f);
-    std::uniform_real_distribution<float> posZ(1.0f, 5.0f);
-    std::uniform_real_distribution<float> posY(13.0f, 15.0f);
+    std::uniform_real_distribution<float> posX(1.0f, 8.0f);
+    std::uniform_real_distribution<float> posZ(1.0f, 8.0f);
+    std::uniform_real_distribution<float> posY(10.0f, 20.0f);
 
     const int numCubes = 25;
-    for (int i = 0; i < numCubes; ++i)
-    {
+    for (int i = 0; i < numCubes; ++i) {
         Vector3 position(posX(gen), posY(gen), posZ(gen));
         Vector3 cubeScale(2.0f, 2.0f, 2.0f);
 
@@ -1321,12 +1152,11 @@ void dx3d::Game::spawnCubeDemo()
 
         m_gameObjects.push_back(cube);
     }
-
     DX3DLogInfo(("Spawned a new Cube Demo with " + std::to_string(numCubes) + " cubes").c_str());
 }
 
-void dx3d::Game::spawnCube()
-{
+void dx3d::Game::spawnCube() {
+    // Set transforms
     Vector3 position(0.0f, 5.0f, 0.0f);
     Vector3 scale(1.0f, 1.0f, 1.0f);
 
@@ -1336,6 +1166,7 @@ void dx3d::Game::spawnCube()
     cube->setPhysicsRestitution(0.5f);
     cube->setPhysicsFriction(0.5f);
 
+    // Undo system
     auto createAction = std::make_unique<CreateAction>(cube, m_gameObjects);
     m_undoRedoSystem->executeAction(std::move(createAction));
 
@@ -1343,8 +1174,8 @@ void dx3d::Game::spawnCube()
     DX3DLogInfo("Spawned Cube");
 }
 
-void dx3d::Game::spawnSphere()
-{
+void dx3d::Game::spawnSphere() {
+    // Set transforms
     Vector3 position(0.0f, 5.0f, 0.0f);
     Vector3 scale(1.0f, 1.0f, 1.0f);
 
@@ -1354,6 +1185,7 @@ void dx3d::Game::spawnSphere()
     sphere->setPhysicsRestitution(0.7f);
     sphere->setPhysicsFriction(0.3f);
 
+    // Undo system
     auto createAction = std::make_unique<CreateAction>(sphere, m_gameObjects);
     m_undoRedoSystem->executeAction(std::move(createAction));
 
@@ -1361,8 +1193,8 @@ void dx3d::Game::spawnSphere()
     DX3DLogInfo("Spawned Sphere");
 }
 
-void dx3d::Game::spawnCapsule()
-{
+void dx3d::Game::spawnCapsule() {
+    // Set transforms
     Vector3 position(0.0f, 5.0f, 0.0f);
     Vector3 scale(1.0f, 1.0f, 1.0f);
 
@@ -1372,6 +1204,7 @@ void dx3d::Game::spawnCapsule()
     capsule->setPhysicsRestitution(0.4f);
     capsule->setPhysicsFriction(0.6f);
 
+    // Undo system
     auto createAction = std::make_unique<CreateAction>(capsule, m_gameObjects);
     m_undoRedoSystem->executeAction(std::move(createAction));
 
@@ -1379,8 +1212,8 @@ void dx3d::Game::spawnCapsule()
     DX3DLogInfo("Spawned Capsule");
 }
 
-void dx3d::Game::spawnCylinder()
-{
+void dx3d::Game::spawnCylinder() {
+    // Set transforms
     Vector3 position(0.0f, 5.0f, 0.0f);
     Vector3 scale(1.0f, 1.0f, 1.0f);
 
@@ -1390,6 +1223,7 @@ void dx3d::Game::spawnCylinder()
     cylinder->setPhysicsRestitution(0.3f);
     cylinder->setPhysicsFriction(0.7f);
 
+    // Undo system
     auto createAction = std::make_unique<CreateAction>(cylinder, m_gameObjects);
     m_undoRedoSystem->executeAction(std::move(createAction));
 
@@ -1397,17 +1231,33 @@ void dx3d::Game::spawnCylinder()
     DX3DLogInfo("Spawned Cylinder");
 }
 
-void dx3d::Game::spawnModel(const std::string& filename)
-{
-    try
-    {
+void dx3d::Game::spawnPlane() {
+    // Set transforms
+    Vector3 position(0.0f, 0.0f, 0.0f);
+    Vector3 scale(10.0f, 1.0f, 10.0f);
+
+    auto plane = std::make_shared<Plane>(position, Vector3(0, 0, 0), scale);
+    plane->enablePhysics(PhysicsBodyType::Static);
+    plane->setPhysicsRestitution(0.0f);
+    plane->setPhysicsFriction(0.7f);
+
+    // Undo system
+    auto createAction = std::make_unique<CreateAction>(plane, m_gameObjects);
+    m_undoRedoSystem->executeAction(std::move(createAction));
+
+    m_selectionSystem->setSelectedObject(plane);
+    DX3DLogInfo("Spawned Plane");
+}
+
+void dx3d::Game::spawnModel(const std::string& filename) {
+    try {
         auto& renderSystem = m_graphicsEngine->getRenderSystem();
         auto resourceDesc = renderSystem.getGraphicsResourceDesc();
 
+        // Get the actual model file
         auto model = Model::LoadFromFile(filename, resourceDesc);
-
-        if (model && model->isReadyForRendering())
-        {
+        if (model && model->isReadyForRendering()) {
+            // Set transforms
             Vector3 position(0.0f, 5.0f, 0.0f);
             Vector3 scale(1.0f, 1.0f, 1.0f);
 
@@ -1431,8 +1281,7 @@ void dx3d::Game::spawnModel(const std::string& filename)
             m_selectionSystem->setSelectedObject(model);
             DX3DLogInfo(("Spawned Model: " + filename).c_str());
         }
-        else
-        {
+        else {
             DX3DLogError(("Failed to load model: " + filename).c_str());
         }
     }
@@ -1442,28 +1291,11 @@ void dx3d::Game::spawnModel(const std::string& filename)
     }
 }
 
-void dx3d::Game::spawnPlane()
-{
-    Vector3 position(0.0f, 0.0f, 0.0f);
-    Vector3 scale(10.0f, 1.0f, 10.0f);
-
-    auto plane = std::make_shared<Plane>(position, Vector3(0, 0, 0), scale);
-    plane->enablePhysics(PhysicsBodyType::Static);
-    plane->setPhysicsRestitution(0.0f);
-    plane->setPhysicsFriction(0.7f);
-
-    auto createAction = std::make_unique<CreateAction>(plane, m_gameObjects);
-    m_undoRedoSystem->executeAction(std::move(createAction));
-
-    m_selectionSystem->setSelectedObject(plane);
-    DX3DLogInfo("Spawned Plane");
-}
-
-void dx3d::Game::spawnDirectionalLight()
-{
+void dx3d::Game::spawnDirectionalLight() {
+    // Set transforms
     auto light = std::make_shared<DirectionalLight>();
     light->setPosition(Vector3(0, 5, 0));
-    light->setRotation(Vector3(0.785f, 0.785f, 0.0f)); // ~45 degree angle
+    light->setRotation(Vector3(0.785f, 0.785f, 0.0f));
 
     m_gameObjects.push_back(light);
     m_lights.push_back(light);
@@ -1471,8 +1303,8 @@ void dx3d::Game::spawnDirectionalLight()
     DX3DLogInfo("Spawned Directional Light");
 }
 
-void dx3d::Game::spawnPointLight()
-{
+void dx3d::Game::spawnPointLight() {
+    // Set transforms
     auto light = std::make_shared<PointLight>();
     light->setPosition(Vector3(0, 3, 0));
     light->setRotation(Vector3(0.785f, 0.0f, 0.0f));
@@ -1483,8 +1315,8 @@ void dx3d::Game::spawnPointLight()
     DX3DLogInfo("Spawned Point Light");
 }
 
-void dx3d::Game::spawnSpotLight()
-{
+void dx3d::Game::spawnSpotLight() {
+    // Set transforms
     auto light = std::make_shared<SpotLight>();
     light->setPosition(Vector3(0, 3, 0));
     light->setRotation(Vector3(-0.785f, 0.0f, 0.0f));
@@ -1495,10 +1327,8 @@ void dx3d::Game::spawnSpotLight()
     DX3DLogInfo("Spawned Spot Light");
 }
 
-void dx3d::Game::setObjectTexture(std::shared_ptr<AGameObject> object, const std::string& textureFileName)
-{
-    if (!object)
-    {
+void dx3d::Game::setObjectTexture(std::shared_ptr<AGameObject> object, const std::string& textureFileName) {
+    if (!object) {
         DX3DLogError("Cannot set texture on null object");
         return;
     }
@@ -1506,19 +1336,16 @@ void dx3d::Game::setObjectTexture(std::shared_ptr<AGameObject> object, const std
     object->setTexture(textureFileName);
 }
 
-std::shared_ptr<dx3d::Texture2D> dx3d::Game::loadTexture(const std::string& fileName)
-{
+std::shared_ptr<dx3d::Texture2D> dx3d::Game::loadTexture(const std::string& fileName) {
     return ResourceManager::getInstance().loadTexture(fileName);
 }
 
-void dx3d::Game::setupMaterialForObject(std::shared_ptr<AGameObject> gameObject, DeviceContext& deviceContext)
-{
+void dx3d::Game::setupMaterialForObject(std::shared_ptr<AGameObject> gameObject, DeviceContext& deviceContext) {
     auto& componentManager = ComponentManager::getInstance();
     auto* materialComp = componentManager.getComponent<MaterialComponent>(gameObject->getEntity().getID());
 
     ModelMaterialConstants mmc;
-
-    // Set default values first
+    // default
     mmc.diffuseColor = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
     mmc.ambientColor = Vector4(0.2f, 0.2f, 0.2f, 1.0f);
     mmc.specularColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1528,10 +1355,8 @@ void dx3d::Game::setupMaterialForObject(std::shared_ptr<AGameObject> gameObject,
     mmc.hasTexture = 0.0f;
 
     // If object has a material, use its properties
-    if (materialComp && materialComp->material)
-    {
+    if (materialComp && materialComp->material) {
         auto material = materialComp->material;
-
         mmc.diffuseColor = material->getDiffuseColor();
         mmc.ambientColor = material->getAmbientColor();
         mmc.specularColor = material->getSpecularColor();
@@ -1540,43 +1365,32 @@ void dx3d::Game::setupMaterialForObject(std::shared_ptr<AGameObject> gameObject,
         mmc.opacity = material->getOpacity();
 
         // Handle texture
-        if (material->hasDiffuseTexture())
-        {
+        if (material->hasDiffuseTexture()) {
             auto texture = material->getDiffuseTexture();
             mmc.hasTexture = 1.0f;
-
-            // Set texture in shader
             auto d3dContext = deviceContext.getDeviceContext();
             ID3D11ShaderResourceView* srv = texture->getShaderResourceView();
             ID3D11SamplerState* sampler = texture->getSamplerState();
             d3dContext->PSSetShaderResources(0, 1, &srv);
             d3dContext->PSSetSamplers(0, 1, &sampler);
         }
-        else
-        {
+        else {
             mmc.hasTexture = 0.0f;
-
-            // Clear texture binding
             auto d3dContext = deviceContext.getDeviceContext();
             ID3D11ShaderResourceView* nullSRV = nullptr;
             d3dContext->PSSetShaderResources(0, 1, &nullSRV);
         }
     }
-    else
-    {
-        // Clear texture binding for objects without materials
+    else {
         auto d3dContext = deviceContext.getDeviceContext();
         ID3D11ShaderResourceView* nullSRV = nullptr;
         d3dContext->PSSetShaderResources(0, 1, &nullSRV);
     }
-
-    // Update the material constant buffer
     m_modelMaterialConstantBuffer->update(deviceContext, &mmc);
 }
 
 
-void dx3d::Game::clearTextureCache()
-{
+void dx3d::Game::clearTextureCache() {
     ResourceManager::getInstance().clearTextureCache();
     DX3DLogInfo("Texture cache cleared");
 }
@@ -1586,8 +1400,7 @@ std::vector<std::string> dx3d::Game::getLoadedTextures() const
     return ResourceManager::getInstance().getLoadedTextureNames();
 }
 
-void dx3d::Game::run()
-{
+void dx3d::Game::run() {
     MSG msg{};
     while (m_isRunning)
     {

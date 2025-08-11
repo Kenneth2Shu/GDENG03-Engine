@@ -17,14 +17,8 @@ void DebugConsoleUI::render()
     float halfWidth = windowWidth * 0.5f;
     float halfHeight = windowHeight * 0.5f;
     float debugHeight = halfHeight * 0.4f;
-    float bottomHeight = windowHeight * 0.4f;
-    float topHeight = windowHeight * 0.6f;
 
-    //ImGui::SetNextWindowPos(ImVec2(halfWidth, windowHeight - debugHeight));
-    //ImGui::SetNextWindowPos(ImVec2(windowWidth * 2/3, topHeight + 50));
     ImGui::SetNextWindowPos(ImVec2(0, 20));
-    //ImGui::SetNextWindowSize(ImVec2(halfWidth, debugHeight));
-    //ImGui::SetNextWindowSize(ImVec2(windowWidth / 3, bottomHeight - 50));
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 120));
 
     ImGui::Begin("Debug Console", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);

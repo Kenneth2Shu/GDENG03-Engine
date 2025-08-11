@@ -7,8 +7,7 @@
 using namespace dx3d;
 
 Texture2D::Texture2D(const std::string& filePath, const GraphicsResourceDesc& desc)
-    : GraphicsResource(desc), m_filePath(filePath), m_width(0), m_height(0)
-{
+    : GraphicsResource(desc), m_filePath(filePath), m_width(0), m_height(0) {
     loadFromFile(filePath);
     createSamplerState();
 }
@@ -103,8 +102,7 @@ void Texture2D::loadFromFile(const std::string& filePath)
     // Convert to RGBA format
     Microsoft::WRL::ComPtr<IWICFormatConverter> converter;
     hr = wicFactory->CreateFormatConverter(&converter);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         DX3DLogError("Failed to create format converter");
         return;
     }
@@ -118,8 +116,7 @@ void Texture2D::loadFromFile(const std::string& filePath)
         WICBitmapPaletteTypeCustom
     );
 
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         DX3DLogError("Failed to initialize format converter");
         return;
     }

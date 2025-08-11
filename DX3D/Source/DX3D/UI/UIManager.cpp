@@ -10,8 +10,7 @@
 
 using namespace dx3d;
 
-UIManager::UIManager(const Dependencies& deps)
-{
+UIManager::UIManager(const Dependencies& deps) {
     m_getSceneFilesCallback = deps.getSavedSceneFiles;
     m_loadSceneCallback = deps.onLoadScene;
 
@@ -56,8 +55,9 @@ UIManager::UIManager(const Dependencies& deps)
 
 UIManager::~UIManager() = default;
 
-void UIManager::render(float deltaTime, const SpawnCallbacks& callbacks)
-{
+
+
+void UIManager::render(float deltaTime, const SpawnCallbacks& callbacks) {
     MainMenuBarUI::Callbacks menuCallbacks;
     menuCallbacks.onSpawnCube = callbacks.onSpawnCube;
     menuCallbacks.onSpawnSphere = callbacks.onSpawnSphere;
@@ -72,15 +72,12 @@ void UIManager::render(float deltaTime, const SpawnCallbacks& callbacks)
     menuCallbacks.onSaveScene = callbacks.onSaveScene;
     menuCallbacks.onLoadScene = callbacks.onLoadScene;
 
-    // Set the callback for the "Load Scene" menu item
     menuCallbacks.onShowLoadSceneDialog = [this]() {
         if (m_getSceneFilesCallback) {
             m_sceneFiles = m_getSceneFilesCallback(); // Latest list of files
         }
         m_isLoadScenePopupOpen = true; // Allow popup
         };
-
-
     m_mainMenuBar->render(menuCallbacks);
     m_viewport->renderGameView();
     m_viewport->renderSceneView();
@@ -89,24 +86,16 @@ void UIManager::render(float deltaTime, const SpawnCallbacks& callbacks)
     m_inspector->render();
     m_debugConsole->render();
 
-    // Render the new popup if it's supposed to be open
     renderLoadScenePopup();
 }
 
-void UIManager::applyLayout()
-{
-}
-
-void UIManager::renderLoadScenePopup()
-{
-    if (m_isLoadScenePopupOpen)
-    {
+void UIManager::renderLoadScenePopup() {
+    if (m_isLoadScenePopupOpen) {
         ImGui::OpenPopup("Load Scene");
-        m_isLoadScenePopupOpen = false; // Reset flag so it only opens once
+        m_isLoadScenePopupOpen = false;
     }
 
-    if (ImGui::BeginPopupModal("Load Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-    {
+    if (ImGui::BeginPopupModal("Load Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))  {
         ImGui::Text("Select a scene file to load:");
         ImGui::Separator();
 
@@ -136,4 +125,8 @@ void UIManager::renderLoadScenePopup()
         }
         ImGui::EndPopup();
     }
+}
+
+void UIManager::applyLayout()
+{
 }

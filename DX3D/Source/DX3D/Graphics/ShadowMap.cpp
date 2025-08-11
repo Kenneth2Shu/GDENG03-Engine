@@ -1,9 +1,7 @@
 #include <DX3D/Graphics/ShadowMap.h>
 #include <DX3D/Graphics/DeviceContext.h>
 
-dx3d::ShadowMap::ShadowMap(ui32 width, ui32 height, const GraphicsResourceDesc& desc)
-    : GraphicsResource(desc), m_width(width), m_height(height)
-{
+dx3d::ShadowMap::ShadowMap(ui32 width, ui32 height, const GraphicsResourceDesc& desc) : GraphicsResource(desc), m_width(width), m_height(height) {
     createResources(width, height);
 
     m_viewport.TopLeftX = 0.0f;
@@ -18,8 +16,7 @@ dx3d::ShadowMap::~ShadowMap()
 {
 }
 
-void dx3d::ShadowMap::createResources(ui32 width, ui32 height)
-{
+void dx3d::ShadowMap::createResources(ui32 width, ui32 height) {
     D3D11_TEXTURE2D_DESC textureDesc = {};
     textureDesc.Width = width;
     textureDesc.Height = height;

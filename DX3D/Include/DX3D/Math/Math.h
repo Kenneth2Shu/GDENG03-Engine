@@ -5,6 +5,8 @@
 
 namespace dx3d
 {
+    // All vector and matric structs
+    // VECTOR 2
 
     struct Vector2
     {
@@ -12,6 +14,8 @@ namespace dx3d
         Vector2() : x(0), y(0) {}
         Vector2(float x, float y) : x(x), y(y) {}
     };
+
+    // VECTOR 3
 
     struct Vector3
     {
@@ -24,7 +28,6 @@ namespace dx3d
         Vector3 operator+(const Vector3& other) const { return Vector3(x + other.x, y + other.y, z + other.z); }
         Vector3 operator-(const Vector3& other) const { return Vector3(x - other.x, y - other.y, z - other.z); }
         Vector3 operator*(float scalar) const { return Vector3(x * scalar, y * scalar, z * scalar); }
-
         Vector3& operator+=(const Vector3& other) { x += other.x; y += other.y; z += other.z; return *this; }
         Vector3& operator-=(const Vector3& other) { x -= other.x; y -= other.y; z -= other.z; return *this; }
         Vector3& operator*=(float scalar) { x *= scalar; y *= scalar; z *= scalar; return *this; }
@@ -54,6 +57,8 @@ namespace dx3d
 
     };
 
+    // VECTOR 4
+
     struct Vector4
     {
         float x, y, z, w;
@@ -62,13 +67,14 @@ namespace dx3d
         Vector4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
     };
 
+    // MATRIX 4X4
+
     struct Matrix4x4
     {
         float m[4][4];
 
         Matrix4x4()
         {
-            // Initialize to identity matrix
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                     m[i][j] = (i == j) ? 1.0f : 0.0f;

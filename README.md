@@ -1,10 +1,8 @@
-Rylan Lim
-Macario Laurel
-Sydrenz Cao
-Kevin Shu Too
+NAME: Kevin Shu Too
 
 INSTRUCTIONS:
+1. Download and unzip
+2. Open project in Visual Studio
+3. Run with Local Windows Debugger
 
-Download or clone the repository
-Open in Visual Studio 2022
-Run in Debugger / Run program
+ENTRY CLASS FILE: GDENG03-Engine/Game/Main.cpp

@@ -3,6 +3,8 @@
 using namespace dx3d;
 using namespace DirectX;
 
+// MATRIX 4X4
+
 Matrix4x4 Matrix4x4::operator*(const Matrix4x4& other) const
 {
     XMMATRIX a = toXMMatrix();

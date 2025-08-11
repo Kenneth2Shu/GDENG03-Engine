@@ -15,15 +15,15 @@ ViewportManager::~ViewportManager()
 {
 }
 
-void ViewportManager::initialize(GraphicsEngine& graphicsEngine, ui32 width, ui32 height)
-{
+void ViewportManager::initialize(GraphicsEngine& graphicsEngine, ui32 width, ui32 height) {
     auto& renderSystem = graphicsEngine.getRenderSystem();
     auto resourceDesc = renderSystem.getGraphicsResourceDesc();
 
+    // scene view
     m_sceneViewport.renderTexture = std::make_shared<RenderTexture>(width, height, resourceDesc);
     m_sceneViewport.width = width;
     m_sceneViewport.height = height;
-
+    // game view
     m_gameViewport.renderTexture = std::make_shared<RenderTexture>(width, height, resourceDesc);
     m_gameViewport.width = width;
     m_gameViewport.height = height;
@@ -31,32 +31,33 @@ void ViewportManager::initialize(GraphicsEngine& graphicsEngine, ui32 width, ui3
     m_initialized = true;
 }
 
-void ViewportManager::resize(ViewportType type, ui32 width, ui32 height)
-{
-    if (!m_initialized || width == 0 || height == 0)
+void ViewportManager::resize(ViewportType type, ui32 width, ui32 height) {
+    if (!m_initialized || width == 0 || height == 0) {
         return;
+    }
 
+    // Viewport sizing
     Viewport& viewport = (type == ViewportType::Scene) ? m_sceneViewport : m_gameViewport;
     viewport.width = width;
     viewport.height = height;
     viewport.renderTexture->resize(width, height);
 }
 
-Viewport& ViewportManager::getViewport(ViewportType type)
-{
-    return (type == ViewportType::Scene) ? m_sceneViewport : m_gameViewport;
-}
-
-const Viewport& ViewportManager::getViewport(ViewportType type) const
-{
-    return (type == ViewportType::Scene) ? m_sceneViewport : m_gameViewport;
-}
-
-void ViewportManager::updateViewportStates(ViewportType type, bool hovered, bool focused, float mouseX, float mouseY)
-{
+void ViewportManager::updateViewportStates(ViewportType type, bool hovered, bool focused, float mouseX, float mouseY) {
     Viewport& viewport = (type == ViewportType::Scene) ? m_sceneViewport : m_gameViewport;
     viewport.isHovered = hovered;
     viewport.isFocused = focused;
     viewport.mousePos.x = mouseX;
     viewport.mousePos.y = mouseY;
 }
+
+// GETTERS
+
+Viewport& ViewportManager::getViewport(ViewportType type) {
+    return (type == ViewportType::Scene) ? m_sceneViewport : m_gameViewport;
+}
+
+const Viewport& ViewportManager::getViewport(ViewportType type) const {
+    return (type == ViewportType::Scene) ? m_sceneViewport : m_gameViewport;
+}
+

@@ -6,11 +6,7 @@
 
 using namespace dx3d;
 
-std::shared_ptr<Model> AssetManager::loadModelSync(
-    const std::string& filePath,
-    const GraphicsResourceDesc& resourceDesc)
-{
-    // Check cache first
+std::shared_ptr<Model> AssetManager::loadModelSync(const std::string& filePath, const GraphicsResourceDesc& resourceDesc) {
     {
         std::lock_guard<std::mutex> lock(m_cacheMutex);
         auto it = m_modelCache.find(filePath);
@@ -20,36 +16,27 @@ std::shared_ptr<Model> AssetManager::loadModelSync(
         }
     }
 
-    // Load model
     auto model = ModelLoader::LoadModel(filePath, resourceDesc);
 
-    // Cache the model if loading was successful
-    if (model)
-    {
+    if (model) {
         cacheModel(filePath, model);
     }
 
     return model;
 }
 
-std::string AssetManager::loadModelAsync(
-    const std::string& filePath,
-    const GraphicsResourceDesc& resourceDesc)
-{
-    // Check cache first
+std::string AssetManager::loadModelAsync(const std::string& filePath, const GraphicsResourceDesc& resourceDesc) {
     {
         std::lock_guard<std::mutex> lock(m_cacheMutex);
         auto it = m_modelCache.find(filePath);
         if (it != m_modelCache.end())
         {
-            // Return a completed task ID for cached model
             std::string taskId = generateTaskId();
             LoadingTask task;
             task.progress = 100.0f;
             task.isComplete = true;
             task.hasError = false;
             task.filePath = filePath;
-            // Create a completed future
             std::promise<std::shared_ptr<Model>> promise;
             promise.set_value(it->second);
             task.future = promise.get_future();
@@ -82,8 +69,8 @@ std::string AssetManager::loadModelAsync(
     return taskId;
 }
 
-bool AssetManager::isLoadingComplete(const std::string& taskId)
-{
+bool AssetManager::isLoadingComplete(const std::string& taskId) {
+    // Check loading tasks
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     auto it = m_loadingTasks.find(taskId);
     if (it != m_loadingTasks.end())
@@ -93,8 +80,7 @@ bool AssetManager::isLoadingComplete(const std::string& taskId)
     return false;
 }
 
-float AssetManager::getLoadingProgress(const std::string& taskId)
-{
+float AssetManager::getLoadingProgress(const std::string& taskId) {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     auto it = m_loadingTasks.find(taskId);
     if (it != m_loadingTasks.end())
@@ -104,8 +90,7 @@ float AssetManager::getLoadingProgress(const std::string& taskId)
     return 0.0f;
 }
 
-std::shared_ptr<Model> AssetManager::getLoadedModel(const std::string& taskId)
-{
+std::shared_ptr<Model> AssetManager::getLoadedModel(const std::string& taskId) {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     auto it = m_loadingTasks.find(taskId);
     if (it != m_loadingTasks.end() && it->second.isComplete && !it->second.hasError)
@@ -115,8 +100,7 @@ std::shared_ptr<Model> AssetManager::getLoadedModel(const std::string& taskId)
     return nullptr;
 }
 
-bool AssetManager::hasLoadingError(const std::string& taskId)
-{
+bool AssetManager::hasLoadingError(const std::string& taskId) {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     auto it = m_loadingTasks.find(taskId);
     if (it != m_loadingTasks.end())
@@ -126,8 +110,7 @@ bool AssetManager::hasLoadingError(const std::string& taskId)
     return false;
 }
 
-std::string AssetManager::getLoadingError(const std::string& taskId)
-{
+std::string AssetManager::getLoadingError(const std::string& taskId) {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     auto it = m_loadingTasks.find(taskId);
     if (it != m_loadingTasks.end())
@@ -137,14 +120,12 @@ std::string AssetManager::getLoadingError(const std::string& taskId)
     return "";
 }
 
-void AssetManager::cleanupTask(const std::string& taskId)
-{
+void AssetManager::cleanupTask(const std::string& taskId) {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     m_loadingTasks.erase(taskId);
 }
 
-void AssetManager::cleanupCompletedTasks()
-{
+void AssetManager::cleanupCompletedTasks() {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
     auto it = m_loadingTasks.begin();
     while (it != m_loadingTasks.end())
@@ -160,56 +141,45 @@ void AssetManager::cleanupCompletedTasks()
     }
 }
 
-void AssetManager::cacheModel(const std::string& filePath, std::shared_ptr<Model> model)
-{
+void AssetManager::cacheModel(const std::string& filePath, std::shared_ptr<Model> model) {
     std::lock_guard<std::mutex> lock(m_cacheMutex);
     m_modelCache[filePath] = model;
 }
 
-std::shared_ptr<Model> AssetManager::getCachedModel(const std::string& filePath)
-{
+std::shared_ptr<Model> AssetManager::getCachedModel(const std::string& filePath) {
     std::lock_guard<std::mutex> lock(m_cacheMutex);
     auto it = m_modelCache.find(filePath);
     return (it != m_modelCache.end()) ? it->second : nullptr;
 }
 
-bool AssetManager::isModelCached(const std::string& filePath)
-{
+bool AssetManager::isModelCached(const std::string& filePath) {
     std::lock_guard<std::mutex> lock(m_cacheMutex);
     return m_modelCache.find(filePath) != m_modelCache.end();
 }
 
-void AssetManager::clearCache()
-{
+void AssetManager::clearCache() {
     std::lock_guard<std::mutex> lock(m_cacheMutex);
     m_modelCache.clear();
 }
 
-void AssetManager::update()
-{
+void AssetManager::update() {
     std::lock_guard<std::mutex> lock(m_tasksMutex);
 
     for (auto& pair : m_loadingTasks)
     {
         auto& task = pair.second;
 
-        if (!task.isComplete)
-        {
-            // Check if future is ready
-            if (task.future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-            {
-                try
-                {
+        if (!task.isComplete) {
+            if (task.future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+                try {
                     auto model = task.future.get();
-                    if (model)
-                    {
+                    if (model) {
                         // Cache the loaded model
                         cacheModel(task.filePath, model);
                         task.progress = 100.0f;
                         task.isComplete = true;
                     }
-                    else
-                    {
+                    else {
                         task.hasError = true;
                         task.errorMessage = "Failed to load model";
                         task.isComplete = true;
@@ -222,27 +192,19 @@ void AssetManager::update()
                     task.isComplete = true;
                 }
             }
-            else
-            {
-                // Update progress (simple increment for now)
+            else {
                 task.progress = std::min(90.0f, task.progress + 10.0f);
             }
         }
     }
 }
 
-std::string AssetManager::generateTaskId()
-{
+std::string AssetManager::generateTaskId() {
     return "task_" + std::to_string(m_taskCounter.fetch_add(1));
 }
 
-std::shared_ptr<Model> AssetManager::loadModelWorker(
-    const std::string& filePath,
-    GraphicsResourceDesc resourceDesc,
-    std::shared_ptr<std::atomic<float>> progressPtr)
-{
-    try
-    {
+std::shared_ptr<Model> AssetManager::loadModelWorker(const std::string& filePath, GraphicsResourceDesc resourceDesc, std::shared_ptr<std::atomic<float>> progressPtr) {
+    try {
         progressPtr->store(10.0f);
         auto model = ModelLoader::LoadModel(filePath, resourceDesc);
         progressPtr->store(100.0f);
@@ -250,7 +212,7 @@ std::shared_ptr<Model> AssetManager::loadModelWorker(
     }
     catch (const std::exception& e)
     {
-        // Log error and return nullptr
+        // Don't forget to log error and return nullptr
         return nullptr;
     }
 }

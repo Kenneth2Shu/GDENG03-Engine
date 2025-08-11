@@ -20,8 +20,7 @@ void ViewportUI::renderGameView()
     float topHeight = windowHeight * 0.5f;
     float bottomHeight = windowHeight * 0.4f;
 
-    //renderViewport(ViewportType::Game, "Game View", Vector2(0, 20), Vector2(halfWidth, halfHeight - 20));
-    renderViewport(ViewportType::Game, "Game View", Vector2(0, 140), Vector2(windowWidth / 2, topHeight - 20));
+    renderViewport(ViewportType::Game, "GAME VIEW", Vector2(0, 140), Vector2(windowWidth / 2, topHeight - 20));
 }
 
 void ViewportUI::renderSceneView()
@@ -34,8 +33,7 @@ void ViewportUI::renderSceneView()
     float topHeight = windowHeight * 0.5f;
     float bottomHeight = windowHeight * 0.4f;
 
-    //renderViewport(ViewportType::Scene, "Scene View", Vector2(0, halfHeight), Vector2(halfWidth, halfHeight));
-    renderViewport(ViewportType::Scene, "Scene View", Vector2(windowWidth / 2, 140), Vector2(windowWidth / 2, topHeight - 20));
+    renderViewport(ViewportType::Scene, "SCENE VIEW", Vector2(windowWidth / 2, 140), Vector2(windowWidth / 2, topHeight - 20));
 }
 
 void ViewportUI::renderViewport(ViewportType type, const char* title, const Vector2& position, const Vector2& size)

@@ -23,90 +23,74 @@ SceneCamera::SceneCamera(const Vector3& position, const Vector3& target, const V
     lookAt(target);
 }
 
-void SceneCamera::moveForward(float distance)
-{
+void SceneCamera::update() {
+    updateViewMatrix();
+}
+
+void SceneCamera::moveForward(float distance) {
     m_position += m_forward * distance;
     updateViewMatrix();
 }
 
-void SceneCamera::moveBackward(float distance)
-{
+void SceneCamera::moveBackward(float distance) {
     m_position -= m_forward * distance;
     updateViewMatrix();
 }
 
-void SceneCamera::moveLeft(float distance)
-{
+void SceneCamera::moveLeft(float distance) {
     m_position -= m_right * distance;
     updateViewMatrix();
 }
 
-void SceneCamera::moveRight(float distance)
-{
+void SceneCamera::moveRight(float distance) {
     m_position += m_right * distance;
     updateViewMatrix();
 }
 
-void SceneCamera::moveUp(float distance)
-{
+void SceneCamera::moveUp(float distance) {
     m_position += m_worldUp * distance;
     updateViewMatrix();
 }
 
-void SceneCamera::moveDown(float distance)
-{
+void SceneCamera::moveDown(float distance) {
     m_position -= m_worldUp * distance;
     updateViewMatrix();
 }
 
-void SceneCamera::rotateYaw(float angle)
-{
+void SceneCamera::rotateYaw(float angle) {
     m_yaw += angle;
     updateVectors();
     updateViewMatrix();
 }
 
-void SceneCamera::rotatePitch(float angle)
-{
+void SceneCamera::rotatePitch(float angle) {
     m_pitch += angle;
-
-    // Clamp pitch to avoid gimbal lock
-    const float maxPitch = 1.5533f; // ~89 degrees
+    const float maxPitch = 1.5533f;
     m_pitch = std::max(-maxPitch, std::min(maxPitch, m_pitch));
-
     updateVectors();
     updateViewMatrix();
 }
 
-void SceneCamera::rotateRoll(float angle)
-{
+void SceneCamera::rotateRoll(float angle) {
     m_roll += angle;
     updateVectors();
     updateViewMatrix();
 }
 
-void SceneCamera::onMouseMove(float deltaX, float deltaY, float sensitivity)
-{
-    // Yaw rotation (left/right)
+void SceneCamera::onMouseMove(float deltaX, float deltaY, float sensitivity) {
+    // Yaw (left/right)
     rotateYaw(deltaX * sensitivity);
 
-    // Pitch rotation (up/down) - inverted for natural feel
+    // Pitch (up/down) inverted
     rotatePitch(-deltaY * sensitivity);
 }
 
-void SceneCamera::update()
-{
-    updateViewMatrix();
-}
-
-void SceneCamera::setPosition(const Vector3& position)
-{
+void SceneCamera::setPosition(const Vector3& position) {
     m_position = position;
     updateViewMatrix();
 }
 
-Vector3 SceneCamera::getForward()
-{
+Vector3 SceneCamera::getForward() {
     Vector3 forward;
 
     forward.x = cosf(m_pitch) * sinf(m_yaw);
@@ -114,12 +98,9 @@ Vector3 SceneCamera::getForward()
     forward.z = cosf(m_pitch) * cosf(m_yaw);
 
     return forward;
-    //return forward.normalized(); // if you have a normalize function
 }
 
-void SceneCamera::lookAt(const Vector3& target)
-{
-    // Calculate direction from position to target
+void SceneCamera::lookAt(const Vector3& target) {
     Vector3 direction;
     direction.x = target.x - m_position.x;
     direction.y = target.y - m_position.y;
@@ -127,8 +108,7 @@ void SceneCamera::lookAt(const Vector3& target)
 
     // Normalize direction
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
-    if (length > 0.0001f)
-    {
+    if (length > 0.0001f) {
         direction.x /= length;
         direction.y /= length;
         direction.z /= length;
@@ -144,8 +124,7 @@ void SceneCamera::lookAt(const Vector3& target)
     updateViewMatrix();
 }
 
-void SceneCamera::updateVectors()
-{
+void SceneCamera::updateVectors() {
     // Calculate forward vector from yaw and pitch
     float cosPitch = std::cos(m_pitch);
     float sinPitch = std::sin(m_pitch);
@@ -180,16 +159,14 @@ void SceneCamera::updateVectors()
 
     // Normalize up vector
     length = std::sqrt(m_up.x * m_up.x + m_up.y * m_up.y + m_up.z * m_up.z);
-    if (length > 0.0f)
-    {
+    if (length > 0.0f) {
         m_up.x /= length;
         m_up.y /= length;
         m_up.z /= length;
     }
 }
 
-void SceneCamera::updateViewMatrix()
-{
+void SceneCamera::updateViewMatrix() {
     Vector3 target = m_position + m_forward;
     m_viewMatrix = Matrix4x4::CreateLookAtLH(m_position, target, m_up);
 }

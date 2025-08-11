@@ -30,8 +30,7 @@ SceneOutlinerUI::SceneOutlinerUI(
 {
 }
 
-void SceneOutlinerUI::render(float deltaTime)
-{
+void SceneOutlinerUI::render(float deltaTime) {
     ImGuiIO& io = ImGui::GetIO();
     float windowWidth = io.DisplaySize.x;
     float windowHeight = io.DisplaySize.y;
@@ -40,19 +39,13 @@ void SceneOutlinerUI::render(float deltaTime)
     float topHeight = windowHeight * 0.6f;
     float bottomHeight = windowHeight * 0.35f;
 
-    //ImGui::SetNextWindowPos(ImVec2(halfWidth, 120));
-    //ImGui::SetNextWindowSize(ImVec2(halfWidth, halfHeight - 120));
     ImGui::SetNextWindowPos(ImVec2(0, topHeight + 50));
     ImGui::SetNextWindowSize(ImVec2(windowWidth / 2, bottomHeight - 10));
     ImGui::Begin("Scene Outliner", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-
     ImGui::Text("Physics Demo");
-    ImGui::Separator();
-
     ImGui::Text("Objects: %zu", m_gameObjects.size());
     ImGui::Text("Delta Time: %.3f ms", deltaTime * 1000.0f);
     ImGui::Text("FPS: %.1f", 1.0f / deltaTime);
-
     if (m_sceneStateManager.isEditMode())
     {
         ImGui::Text("Undo Stack: %d actions", m_undoRedoSystem.getUndoCount());
@@ -69,30 +62,23 @@ void SceneOutlinerUI::render(float deltaTime)
     ImGui::End();
 }
 
-void SceneOutlinerUI::renderHierarchy()
-{
+void SceneOutlinerUI::renderHierarchy() {
     std::vector<std::shared_ptr<AGameObject>> rootObjects;
-    for (const auto& obj : m_gameObjects)
-    {
-        if (!obj->hasParent())
-        {
+    for (const auto& obj : m_gameObjects) {
+        if (!obj->hasParent()) {
             rootObjects.push_back(obj);
         }
     }
 
     int nodeIndex = 0;
-    for (const auto& rootObj : rootObjects)
-    {
+    for (const auto& rootObj : rootObjects) {
         renderObjectNode(rootObj, nodeIndex);
     }
 
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
-        {
+    if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT")) {
             std::shared_ptr<AGameObject>* droppedObj = (std::shared_ptr<AGameObject>*)payload->Data;
-            if (*droppedObj && m_draggedObject)
-            {
+            if (*droppedObj && m_draggedObject) {
                 m_draggedObject->removeParent();
                 m_draggedObject = nullptr;
             }
@@ -101,10 +87,10 @@ void SceneOutlinerUI::renderHierarchy()
     }
 }
 
-void SceneOutlinerUI::renderObjectNode(std::shared_ptr<AGameObject> object, int& nodeIndex)
-{
-    if (!object)
+void SceneOutlinerUI::renderObjectNode(std::shared_ptr<AGameObject> object, int& nodeIndex) {
+    if (!object) {
         return;
+    }
 
     ImGui::PushID(nodeIndex++);
 
@@ -113,11 +99,13 @@ void SceneOutlinerUI::renderObjectNode(std::shared_ptr<AGameObject> object, int&
 
     ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-    if (isSelected)
+    if (isSelected) {
         nodeFlags |= ImGuiTreeNodeFlags_Selected;
+    }
 
-    if (!object->hasChildren())
+    if (!object->hasChildren()) {
         nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+    }
 
     bool isPrimitive = (std::dynamic_pointer_cast<Cube>(object) ||
         std::dynamic_pointer_cast<Sphere>(object) ||
@@ -125,77 +113,64 @@ void SceneOutlinerUI::renderObjectNode(std::shared_ptr<AGameObject> object, int&
         std::dynamic_pointer_cast<Cylinder>(object) ||
         std::dynamic_pointer_cast<Capsule>(object));
 
-    if (!isEnabled)
-    {
+    if (!isEnabled) {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.3f, 0.3f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.4f, 0.4f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.1f, 0.1f, 1.0f));
     }
-    else
-    {
+    else {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.15f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.7f, 0.3f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.3f, 0.1f, 1.0f));
     }
 
     const char* buttonLabel = isEnabled ? "E" : "D";
-    if (ImGui::SmallButton(buttonLabel))
-    {
+    if (ImGui::SmallButton(buttonLabel)) {
         object->setEnabled(!isEnabled);
     }
     ImGui::PopStyleColor(3);
-
     ImGui::SameLine();
 
     std::string nodeName = getObjectDisplayName(object, object->getEntity().getID());
 
-    if (!isEnabled)
-    {
+    if (!isEnabled) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
     }
 
-    if (object->getChildren().empty())
-    {
+    if (object->getChildren().empty()) {
         nodeFlags |= ImGuiTreeNodeFlags_Leaf;
     }
 
     bool nodeOpen = ImGui::TreeNodeEx(nodeName.c_str(), nodeFlags);
 
-    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-    {
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
         m_controller.onObjectSelected(object);
     }
 
-    if (isPrimitive && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-    {
+    if (isPrimitive && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
         ImGui::SetDragDropPayload("GAME_OBJECT", &object, sizeof(std::shared_ptr<AGameObject>));
         ImGui::Text("Dragging %s", nodeName.c_str());
         m_draggedObject = object; 
         ImGui::EndDragDropSource();
     }
 
-    if (isPrimitive && ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
-        {
+    if (isPrimitive && ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT")) {
             std::shared_ptr<AGameObject>* droppedObj = (std::shared_ptr<AGameObject>*)payload->Data;
 
-            if (*droppedObj && m_draggedObject && m_draggedObject != object)
-            {
+            if (*droppedObj && m_draggedObject && m_draggedObject != object) {
                 bool canParent = true;
                 std::shared_ptr<AGameObject> checkParent = object;
-                while (checkParent)
-                {
-                    if (checkParent == m_draggedObject)
-                    {
+
+                while (checkParent) {
+                    if (checkParent == m_draggedObject) {
                         canParent = false;
                         break;
                     }
                     checkParent = checkParent->getParent();
                 }
 
-                if (canParent)
-                {
+                if (canParent) {
                     m_controller.onParentChanged(m_draggedObject, m_draggedObject->getParent(), object);
                     m_draggedObject = nullptr;
                 }
@@ -204,60 +179,47 @@ void SceneOutlinerUI::renderObjectNode(std::shared_ptr<AGameObject> object, int&
         ImGui::EndDragDropTarget();
     }
 
-    if (!isEnabled)
-    {
+    if (!isEnabled) {
         ImGui::PopStyleColor();
     }
 
-    if (nodeOpen)
-    {
+    if (nodeOpen) {
         int validChildCount = 0;
-        for (auto& weakChild : object->getChildren())
-        {
-            if (auto child = weakChild.lock())
-            {
+        for (auto& weakChild : object->getChildren()) {
+            if (auto child = weakChild.lock()) {
                 validChildCount++;
                 renderObjectNode(child, nodeIndex);
             }
         }
 
-        if (!object->getChildren().empty() && validChildCount == 0)
-        {
-            ImGui::TextDisabled("  (Children are invalid or destroyed)");
+        if (!object->getChildren().empty() && validChildCount == 0) {
+            ImGui::TextDisabled("  (Children are invalid or have been destroyed)");
         }
-
         ImGui::TreePop();
     }
-
     ImGui::PopID();
-
-    
 }
 
-std::string SceneOutlinerUI::getObjectDisplayName(std::shared_ptr<AGameObject> object, int index)
-{
+std::string SceneOutlinerUI::getObjectDisplayName(std::shared_ptr<AGameObject> object, int index) {
     std::string objectName = "Object";
+
     if (std::dynamic_pointer_cast<Cube>(object)) objectName = "Cube";
     else if (std::dynamic_pointer_cast<Plane>(object)) objectName = "Plane";
     else if (std::dynamic_pointer_cast<Sphere>(object)) objectName = "Sphere";
     else if (std::dynamic_pointer_cast<Cylinder>(object)) objectName = "Cylinder";
     else if (std::dynamic_pointer_cast<Capsule>(object)) objectName = "Capsule";
     else if (std::dynamic_pointer_cast<CameraObject>(object)) objectName = "Game Camera";
-    else if (auto light = std::dynamic_pointer_cast<LightObject>(object))
-    {
-        switch (light->getLightData().type)
-        {
+    else if (auto light = std::dynamic_pointer_cast<LightObject>(object)) {
+        switch (light->getLightData().type) {
         case LIGHT_TYPE_DIRECTIONAL: objectName = "Directional Light"; break;
         case LIGHT_TYPE_POINT:       objectName = "Point Light"; break;
         case LIGHT_TYPE_SPOT:        objectName = "Spot Light"; break;
         }
     }
-
-    return objectName + " " + std::to_string(index);
+    return objectName + ", ID " + std::to_string(index);
 }
 
-std::string SceneOutlinerUI::getObjectIcon(std::shared_ptr<AGameObject> object)
-{
+std::string SceneOutlinerUI::getObjectIcon(std::shared_ptr<AGameObject> object) {
     if (std::dynamic_pointer_cast<Cube>(object)) return "[C]";
     else if (std::dynamic_pointer_cast<Plane>(object)) return "[P]";
     else if (std::dynamic_pointer_cast<Sphere>(object)) return "[S]";
